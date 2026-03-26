@@ -83,7 +83,6 @@ public sealed class ZadaniaLinq
     /// </summary>
     public IEnumerable<string> Zadanie05_CzyIstniejeNieaktywneZapisanie()
     {
-        //throw Niezaimplementowano(nameof(Zadanie05_CzyIstniejeNieaktywneZapisanie));
         return DaneUczelni.Zapisy.Any(s=> s.CzyAktywny) ? ["True"] : ["False"];
     }
 
@@ -99,7 +98,8 @@ public sealed class ZadaniaLinq
     /// </summary>
     public IEnumerable<string> Zadanie06_CzyWszyscyProwadzacyMajaKatedre()
     {
-        throw Niezaimplementowano(nameof(Zadanie06_CzyWszyscyProwadzacyMajaKatedre));
+        return DaneUczelni.Prowadzacy.Count() == 
+               DaneUczelni.Prowadzacy.Count(s => true) ? ["True"] : ["False"];
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public sealed class ZadaniaLinq
     /// </summary>
     public IEnumerable<string> Zadanie07_LiczbaAktywnychZapisow()
     {
-        throw Niezaimplementowano(nameof(Zadanie07_LiczbaAktywnychZapisow));
+        return [DaneUczelni.Zapisy.Count(s => s.CzyAktywny).ToString()];
     }
 
     /// <summary>
@@ -127,7 +127,7 @@ public sealed class ZadaniaLinq
     /// </summary>
     public IEnumerable<string> Zadanie08_UnikalneMiastaStudentow()
     {
-        throw Niezaimplementowano(nameof(Zadanie08_UnikalneMiastaStudentow));
+        return DaneUczelni.Studenci.OrderBy(s => s.Miasto).Select(s => s.Miasto).Distinct();
     }
 
     /// <summary>
@@ -142,7 +142,9 @@ public sealed class ZadaniaLinq
     /// </summary>
     public IEnumerable<string> Zadanie09_TrzyNajnowszeZapisy()
     {
-        throw Niezaimplementowano(nameof(Zadanie09_TrzyNajnowszeZapisy));
+        var list = DaneUczelni.Zapisy.OrderByDescending(s => s.DataZapisu)
+            .Select(s => s.DataZapisu + " " + s.StudentId + " " + s.PrzedmiotId).ToList();
+        return list.Slice(0, 3);
     }
 
     /// <summary>
@@ -158,7 +160,7 @@ public sealed class ZadaniaLinq
     /// </summary>
     public IEnumerable<string> Zadanie10_DrugaStronaPrzedmiotow()
     {
-        throw Niezaimplementowano(nameof(Zadanie10_DrugaStronaPrzedmiotow));
+        return DaneUczelni.Przedmioty.OrderBy(s => s.Nazwa).Skip(2).Take(2).Select(s=> s.Nazwa + " " + s.Kategoria);
     }
 
     /// <summary>
@@ -173,7 +175,14 @@ public sealed class ZadaniaLinq
     /// </summary>
     public IEnumerable<string> Zadanie11_PolaczStudentowIZapisy()
     {
-        throw Niezaimplementowano(nameof(Zadanie11_PolaczStudentowIZapisy));
+        var list = DaneUczelni.Studenci.Join(DaneUczelni.Zapisy, s => s.Id, d => d.StudentId
+            , (student, zapis) => new
+            {
+                imie = student.Imie,
+                nazwisko = student.Nazwisko,
+                dataZapisu = zapis.DataZapisu
+            });
+        return list.Select(item => item.imie + " " + item.nazwisko +  " " + item.dataZapisu);
     }
 
     /// <summary>
@@ -189,8 +198,16 @@ public sealed class ZadaniaLinq
     /// </summary>
     public IEnumerable<string> Zadanie12_ParyStudentPrzedmiot()
     {
-        throw Niezaimplementowano(nameof(Zadanie12_ParyStudentPrzedmiot));
-    }
+        return DaneUczelni.Zapisy
+                .Join(DaneUczelni.Studenci, 
+                    z => z.StudentId, 
+                    s => s.Id, 
+                    (z, s) => new { z, s }) 
+                .Join(DaneUczelni.Przedmioty, 
+                    połączone => połączone.z.PrzedmiotId, 
+                    p => p.Id, 
+                    (połączone, p) => $"{połączone.s.Imie} {połączone.s.Nazwisko} {p.Nazwa}");
+        }
 
     /// <summary>
     /// Zadanie:
@@ -204,7 +221,13 @@ public sealed class ZadaniaLinq
     /// </summary>
     public IEnumerable<string> Zadanie13_GrupowanieZapisowWedlugPrzedmiotu()
     {
-        throw Niezaimplementowano(nameof(Zadanie13_GrupowanieZapisowWedlugPrzedmiotu));
+        return DaneUczelni.Zapisy
+            .Join(DaneUczelni.Przedmioty, 
+                z => z.PrzedmiotId, 
+                p => p.Id, 
+                (zapis, przedmiot) => przedmiot.Nazwa) 
+            .GroupBy(nazwa => nazwa) 
+            .Select(g => $"{g.Key} {g.Count()}"); 
     }
 
     /// <summary>
