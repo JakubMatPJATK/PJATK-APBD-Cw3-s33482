@@ -392,10 +392,16 @@ public sealed class ZadaniaLinq
     /// </summary>
     public IEnumerable<string> Wyzwanie04_MiastaILiczbaAktywnychZapisow()
     {
-        throw Niezaimplementowano(nameof(Wyzwanie04_MiastaILiczbaAktywnychZapisow));
+        return DaneUczelni.Studenci
+            .Join(DaneUczelni.Zapisy, student => student.Id, zapis => zapis.StudentId, 
+                (student, zapis) => new { student, zapis })
+            .Where(s => s.zapis.CzyAktywny)
+            .GroupBy(s => s.student.Miasto)
+            .OrderByDescending(s => s.Count())
+            .Select(s => $"{s.Key} {s.Count()}");
     }
 
-    private static NotImplementedException Niezaimplementowano(string nazwaMetody)
+    private static NotImplementedException Niezaimplementowano(String nazwaMetody)
     {
         return new NotImplementedException(
             $"Uzupełnij metodę {nazwaMetody} w pliku Exercises/ZadaniaLinq.cs i uruchom polecenie ponownie.");
