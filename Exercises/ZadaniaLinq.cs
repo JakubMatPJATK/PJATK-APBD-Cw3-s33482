@@ -245,7 +245,7 @@ public sealed class ZadaniaLinq
     public IEnumerable<string> Zadanie14_SredniaOcenaNaPrzedmiot()
     {
         return DaneUczelni.Zapisy
-            .Where(z => z.OcenaKoncowa != null) // 1. Najpierw odrzucamy nulle
+            .Where(z => z.OcenaKoncowa != null) 
             .Join(DaneUczelni.Przedmioty,
                 z => z.PrzedmiotId,
                 p => p.Id,
@@ -343,7 +343,13 @@ public sealed class ZadaniaLinq
     /// </summary>
     public IEnumerable<string> Wyzwanie02_PrzedmiotyStartujaceWKwietniuBezOcenKoncowych()
     {
-        throw Niezaimplementowano(nameof(Wyzwanie02_PrzedmiotyStartujaceWKwietniuBezOcenKoncowych));
+        return DaneUczelni.Przedmioty
+            .Join(DaneUczelni.Zapisy, p => p.Id, z => z.PrzedmiotId, 
+                (przedmiot, zapis) => new {przedmiot, zapis})
+            .Where(s => s.przedmiot.DataStartu.Month == 4 &&  s.przedmiot.DataStartu.Year == 2026)
+            .GroupBy(s => s.przedmiot.Nazwa)
+            .Where(s => s.All(x => x.zapis.OcenaKoncowa == null))
+            .Select(p => p.Key);
     }
 
     /// <summary>
@@ -361,7 +367,14 @@ public sealed class ZadaniaLinq
     /// </summary>
     public IEnumerable<string> Wyzwanie03_ProwadzacyISredniaOcenNaIchPrzedmiotach()
     {
-        throw Niezaimplementowano(nameof(Wyzwanie03_ProwadzacyISredniaOcenNaIchPrzedmiotach));
+        return DaneUczelni.Prowadzacy
+            .LeftJoin(DaneUczelni.Przedmioty, pro => pro.Id, prze => prze.ProwadzacyId,
+                (prowadzacy, przedmiot) => (prowadzacy, przedmiot))
+            .LeftJoin(DaneUczelni.Zapisy, pro => pro.przedmiot.Id, zapis => zapis.PrzedmiotId,
+                (tuple, zapis) => (tuple.prowadzacy, tuple.przedmiot, zapis))
+            .Where(z => z.zapis.OcenaKoncowa != null)
+            .GroupBy(s => (s.prowadzacy.Imie, s.prowadzacy.Nazwisko))
+            .Select(s => $"{s.Key.Imie} {s.Key.Nazwisko} {s.Average(s => s.zapis.OcenaKoncowa)}");
     }
 
     /// <summary>
